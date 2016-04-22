@@ -55,7 +55,7 @@ VERSION="0.1.10"
 # Starting directory
 START_PWD="$(pwd)"
 
-# Name of the file containing the projects list
+# Name of the file containing the projects list8841e0fc5ebfb21a147ef934e5a98ba01d79dc68
 PROJECTS_FILE=".projects.gws"
 
 # Name of the file containing the ignored patterns
@@ -92,6 +92,7 @@ MBL=25
 S_NONE=0
 S_FETCH=1
 S_FAST_FORWARD=2
+S_CUSTOM_GIT_CMD=3
 
 # Colors
 if [[ -t 1 ]]; then
@@ -978,6 +979,37 @@ function cmd_check()
     return 0
 }
 
+# Exe command
+function cmd_exec()
+{
+    local dir repo result
+
+	#for temp in $@
+	#do
+#		echo -e $temp
+#	done
+
+
+    # For all projects
+    for dir in "${projects_indexes[@]}"
+    do
+        # Get informations about the current project
+        repo=$(get_repo_url "${projects[$dir]}")
+
+        # Print the repository
+        echo -e "${C_BLUE}$dir${C_OFF}:"
+
+		cd $dir
+		result=`git $@`
+		cd - > /dev/null
+
+		echo -e "$result"
+
+    done
+
+    return 0
+}
+
 # Display the usage of this program
 function usage()
 {
@@ -985,6 +1017,7 @@ function usage()
     echo -e ""
     echo -e "Usages: ${C_RED}$(basename "$0")${C_OFF} ${C_BLUE}<command>${C_OFF} [${C_GREEN}<directory>${C_OFF}]"
     echo -e "        ${C_RED}$(basename "$0")${C_OFF} [${C_GREEN}<directory>${C_OFF}]"
+    echo -e "        ${C_RED}$(basename "$0")${C_OFF} ${C_BLUE}<exe>${C_OFF} <command>"
     echo -e ""
     echo -e "where ${C_BLUE}<command>${C_OFF} is:"
     echo -e "    ${C_BLUE}init${C_OFF}   - Detect the repositories and create the projects list"
@@ -994,6 +1027,7 @@ function usage()
     echo -e "    ${C_BLUE}fetch${C_OFF}  - Print status for all repositories in the workspace, but fetch the origin before"
     echo -e "    ${C_BLUE}ff${C_OFF}     - Print status for all repositories in the workspace, but fast forward from origin before"
     echo -e "    ${C_BLUE}check${C_OFF}  - Check the workspace for all repositories (known/unknown/missing)"
+    echo -e "    ${C_BLUE}exe${C_OFF}    - Execute custom git cmd"
     echo -e ""
     echo -e "If no ${C_BLUE}<command>${C_OFF} is specified, the command ${C_BLUE}status${C_OFF} is assumed."
     echo -e ""
@@ -1031,7 +1065,7 @@ if [[ "$1" != "init" ]]; then
     # the path
     if [[ -n "$2" ]]; then
         # But don't error out in the case of "clone", becuase the directory will probably not exist
-        if [[ "$1" != "clone" ]]; then
+        if [[ "$1" != "clone" && "$1" != "exe" ]]; then
             error_msg="${C_RED}The directory '$2' is not found.${C_OFF}"
             projects_list=$(keep_prefixed_projects "$2") || (echo -e "$error_msg" && exit 1) || exit 1
             projects_indexes=( ${projects_list} )
@@ -1061,6 +1095,10 @@ case $1 in
     "ff")
         cmd_status $S_FAST_FORWARD
         ;;
+	"exe")
+		shift
+		cmd_exec $@
+		;;
     "check")
         cmd_check
         ;;
