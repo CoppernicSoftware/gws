@@ -110,6 +110,7 @@ MBL=25
 S_NONE=0
 S_FETCH=1
 S_FAST_FORWARD=2
+S_CUSTOM_GIT_CMD=3
 
 # Default colors
 C_ERROR="\e[91m"
@@ -1126,6 +1127,7 @@ where ${C_REPO}<command>${C_OFF} is:
     ${C_REPO}fetch${C_OFF}  - Print status for all repositories in the workspace, but fetch the origin first
     ${C_REPO}ff${C_OFF}     - Print status for all repositories in the workspace, but fast forward to origin first
     ${C_REPO}check${C_OFF}  - Print difference between projects list and workspace (known/unknown/missing)
+    ${C_REPO}exe${C_OFF}    - Execute custom git cmd
 
 where ${C_HELP_DIR}<directory>${C_OFF} can be a path to limit the scope of the commands to a specific subfolder
 of the workspace.
@@ -1137,13 +1139,43 @@ The commands ${C_REPO}status${C_OFF}, ${C_REPO}fetch${C_OFF} and ${C_REPO}ff${C_
 "
 }
 
+# Exe command
+function cmd_exec()
+{
+    local dir repo result
+
+	#for temp in $@
+	#do
+#		echo -e $temp
+#	done
+
+
+    # For all projects
+    for dir in "${projects_indexes[@]}"
+    do
+        # Get informations about the current project
+        repo=$(get_repo_url "${projects[$dir]}")
+
+        # Print the repository
+        echo -e "${C_BLUE}$dir${C_OFF}:"
+
+		cd $dir
+		result=`git $@`
+		cd - > /dev/null
+
+		echo -e "$result"
+
+    done
+
+    return 0
+}
 
 
 command=status
 implicit_command=false
 # Identify the desired command
 case $1 in
-    init|clone|update|status|fetch|ff|check)
+    init|clone|update|status|fetch|ff|check|exe)
         command="$1"
         shift
         ;;
@@ -1211,7 +1243,7 @@ fi
 # the path
 if [[ -n "$1" ]]; then
     # But don't error out in the case of "clone", because the directory will probably not exist
-    if [[ "$command" != "clone" ]]; then
+    if [[ "$command" != "clone" ]] && [[ "$command" != "exe" ]]; then
         error_msg="${C_ERROR}The directory '$1' does not exist.${C_OFF}"
         projects_list=$(keep_prefixed_projects "$1") || (echo -e "$error_msg" && exit 1) || exit 1
         projects_indexes=( ${projects_list} )
@@ -1238,6 +1270,9 @@ case $command in
     ff)
         cmd_status $S_FAST_FORWARD
         ;;
+	exe)
+		cmd_exec $@
+		;;
     check)
         cmd_check
         ;;
