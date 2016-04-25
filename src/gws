@@ -1118,6 +1118,7 @@ function usage()
 
 Usages: ${C_HELP_PROGNAME}$(basename "$0")${C_OFF} ${C_REPO}<command>${C_OFF} [${C_HELP_DIR}<directory>${C_OFF}]
         ${C_HELP_PROGNAME}$(basename "$0")${C_OFF} [${C_HELP_DIR}<directory>${C_OFF}]
+        ${C_HELP_PROGNAME}$(basename "$0")${C_OFF} ${C_REPO}exe${C_OFF} ${C_HELP_DIR}<git command arguments>${C_OFF}
 
 where ${C_REPO}<command>${C_OFF} is:
     ${C_REPO}init${C_OFF}   - Detect repositories and create the projects list
@@ -1127,7 +1128,7 @@ where ${C_REPO}<command>${C_OFF} is:
     ${C_REPO}fetch${C_OFF}  - Print status for all repositories in the workspace, but fetch the origin first
     ${C_REPO}ff${C_OFF}     - Print status for all repositories in the workspace, but fast forward to origin first
     ${C_REPO}check${C_OFF}  - Print difference between projects list and workspace (known/unknown/missing)
-    ${C_REPO}exe${C_OFF}    - Execute custom git cmd
+    ${C_REPO}exe${C_OFF}    - Execute custom git cmd in all repositories with arguments provided in parameter
 
 where ${C_HELP_DIR}<directory>${C_OFF} can be a path to limit the scope of the commands to a specific subfolder
 of the workspace.
@@ -1169,7 +1170,6 @@ function cmd_exec()
 
     return 0
 }
-
 
 command=status
 implicit_command=false
